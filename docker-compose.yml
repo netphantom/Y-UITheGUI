@@ -8,6 +8,8 @@ services:
     volumes:
       - ./data:/data   # SQLite DB, generated songs, Hugging Face model cache
     restart: unless-stopped
+    device_cgroup_rules:
+      - "c 509:* rmw"
     deploy:
       resources:
         reservations:
