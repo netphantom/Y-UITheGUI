@@ -17,7 +17,7 @@ Write lyrics, pick a style, get a full song with vocals — on your own GPU.
 [![Svelte 5](https://img.shields.io/badge/Svelte-5-FF3E00?logo=svelte&logoColor=white)](https://svelte.dev)
 [![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white)](https://sqlite.org)
 
-[Quick start](#-quick-start) · [Features](#-features) · [Configuration](#%EF%B8%8F-configuration) · [Architecture](#-architecture) · [Development](#-development)
+[Quick start](#-quick-start) · [Windows](#-windows-guide) · [Features](#-features) · [Configuration](#%EF%B8%8F-configuration) · [Architecture](#-architecture) · [Development](#-development)
 
 <img src="docs/assets/screenshot-home.png" alt="Y-UI create page with the song list and the player" width="100%" />
 
@@ -51,16 +51,15 @@ Write lyrics, pick a style, get a full song with vocals — on your own GPU.
 
 ## 🚀 Quick start
 
-**Requirements:** Linux with Docker and Compose v2. For real songs, an NVIDIA GPU with BF16
-support and ~24 GB VRAM, plus the
-[NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
+**Requirements:** Docker with Compose v2. For real songs, an NVIDIA GPU with BF16 support and
+~24 GB VRAM (e.g. RTX 3090 / 4090 / 5090) and ~20 GB of free disk.
 
 ### Supported platforms
 
 | Platform | Real songs (YuE2) | UI demo (mock) | Requirements |
 |---|:---:|:---:|---|
 | **Linux** + NVIDIA GPU | ✅ | ✅ | Docker Engine + [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) |
-| **Windows 10/11** + NVIDIA GPU | ✅ | ✅ | [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) with the **WSL 2 backend** and an up-to-date NVIDIA driver |
+| **Windows 10/11** + NVIDIA GPU | ✅ | ✅ | [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) with the **WSL 2 backend** and an up-to-date NVIDIA driver. See the [Windows guide](#-windows-guide) |
 | **macOS** (Intel / Apple Silicon) | ❌ | ✅ | Docker Desktop. Containers cannot use the Apple GPU and YuE2 needs CUDA, so only the mock engine runs |
 
 ### One-click install
@@ -89,11 +88,6 @@ Run the same command again to update. Your `.env` and your data are never touche
 > The UI works meanwhile, and songs wait in the queue until **Settings → Engine** shows *ready*.
 > Follow progress with `docker compose logs -f backend`.
 
-> [!TIP]
-> On Windows the data lives in the Docker volume `y-ui_yui-data` instead of a folder:
-> SQLite on a bind-mounted `C:\` folder is slow and its file locks are unreliable.
-> Back it up with `docker run --rm -v y-ui_yui-data:/data -v ${PWD}:/backup alpine tar czf /backup/yui-data.tgz -C /data .`
-
 ### Manual install
 
 ```bash
@@ -102,8 +96,96 @@ cp .env.example .env        # edit it: no GPU? set YUI_ENGINE=mock and COMPOSE_F
 docker compose up -d
 ```
 
-Docker Compose reads `.env` on its own. To build the images from source instead of pulling
+On Windows (PowerShell) use `Copy-Item .env.example .env` and set `YUI_DATA_PATH=yui-data` in
+it (see the [Windows guide](#-windows-guide)). Docker Compose reads `.env` on its own. To build the images from source instead of pulling
 them, add `docker-compose.dev.yml` to `COMPOSE_FILE`.
+
+## 🪟 Windows guide
+
+Y-UI runs on Windows through **Docker Desktop**, which runs the Linux containers in a small
+WSL 2 virtual machine. The NVIDIA driver installed on Windows exposes the GPU to that VM, so
+YuE2 runs on your graphics card exactly as on Linux. You do not need to install CUDA, Python
+or the NVIDIA Container Toolkit.
+
+```
+PowerShell ──► Docker Desktop ──► WSL 2 VM (Linux) ──► frontend :8080 ──► backend ──► GPU
+                                                                         (via the Windows NVIDIA driver)
+```
+
+### 1. Prerequisites (once)
+
+1. **Windows 10 22H2 or Windows 11**, with virtualization enabled in the BIOS (it usually is).
+2. **NVIDIA driver**: install the latest Game Ready or Studio driver from
+   [nvidia.com/drivers](https://www.nvidia.com/Download/index.aspx). It already includes
+   CUDA support for WSL.
+3. **WSL 2**: open PowerShell **as administrator**, run `wsl --install`, then reboot.
+4. **Docker Desktop**: install it from
+   [docker.com](https://docs.docker.com/desktop/setup/install/windows-install/), keep
+   *Use WSL 2 instead of Hyper-V* checked, and start it. In *Settings → General* enable
+   *Start Docker Desktop when you sign in* if you want Y-UI available after every reboot.
+5. **Check the GPU** from a normal PowerShell. This must print your graphics card:
+
+   ```powershell
+   docker run --rm --gpus all nvidia/cuda:12.8.0-base-ubuntu24.04 nvidia-smi
+   ```
+
+### 2. Install
+
+From a normal (non-admin) PowerShell, with Docker Desktop running:
+
+```powershell
+irm https://raw.githubusercontent.com/netphantom/Y-UITheGUI/main/install.ps1 | iex
+```
+
+The script creates `C:\Users\<you>\y-ui`, writes `.env` there with GPU mode if `nvidia-smi`
+works (mock mode otherwise), pulls the images, starts Y-UI and opens
+**http://localhost:8080** in your browser. Register: the first account is the admin.
+
+The first start installs YuE2 and downloads the model (~15 GB). The UI is usable meanwhile;
+**Settings → Engine** shows *ready* when generation can start.
+
+### 3. Everyday use
+
+All commands run in PowerShell from the install folder (`cd ~\y-ui`):
+
+| Task | Command |
+|---|---|
+| Open the UI | http://localhost:8080 |
+| Follow the logs | `docker compose logs -f backend` |
+| Stop | `docker compose down` |
+| Start again | `docker compose up -d` |
+| Update Y-UI | run the install command again |
+| Change settings | edit `.env` (e.g. `notepad .env`), then `docker compose up -d` |
+
+With Docker Desktop open, the containers restart on their own after a reboot.
+
+### 4. Where your data lives
+
+On Windows everything (database, songs, YuE2 engine, model weights) lives in the Docker volume
+**`y-ui_yui-data`**, not in a folder: SQLite on a `C:\` folder shared with the VM is slow and
+its file locks are unreliable. Songs and scores can be downloaded from the UI. The volume is
+visible in Docker Desktop under *Volumes*.
+
+```powershell
+# Back up to yui-data.tgz in the current folder
+docker run --rm -v y-ui_yui-data:/data -v ${PWD}:/backup alpine tar czf /backup/yui-data.tgz -C /data .
+# Restore (stop Y-UI first with: docker compose down)
+docker run --rm -v y-ui_yui-data:/data -v ${PWD}:/backup alpine tar xzf /backup/yui-data.tgz -C /data
+```
+
+**Uninstall:** `docker compose down`, then delete the `y-ui` folder. Run `docker volume rm
+y-ui_yui-data` only if you also want to delete all songs and the downloaded model.
+
+### 5. Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `Docker is not running` | Start Docker Desktop and wait until it says *Engine running*. |
+| Installer chose the mock engine on a PC with an NVIDIA card | `nvidia-smi` failed: update the driver, check step 5, then set `YUI_ENGINE=yue2` and `COMPOSE_FILE=docker-compose.yml:docker-compose.gpu.yml` in `.env` and run `docker compose up -d`. |
+| **Settings → Engine** shows *failed to load* | Read the error there or in `docker compose logs backend`: most often too little VRAM, or a GPU without BF16 (pre-RTX 30 series). |
+| The backend restarts while loading the model | The WSL VM ran out of RAM. Create `%UserProfile%\.wslconfig` with `[wsl2]` and `memory=24GB` on the next line, then run `wsl --shutdown` and restart Docker Desktop. |
+| Disk C: is full | Docker Desktop stores its data on C: by default. Move it in *Settings → Resources → Advanced → Disk image location*. |
+| Port 8080 is already in use | Set `YUI_PORT=8090` (or another free port) in `.env`, then `docker compose up -d`. |
 
 ## ⚙️ Configuration
 
