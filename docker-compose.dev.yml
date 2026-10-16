@@ -1,0 +1,6 @@
+# Build the images from this checkout: COMPOSE_FILE=docker-compose.yml:docker-compose.dev.yml
+services:
+  backend:
+    build: ./backend
+  frontend:
+    build: ./frontend

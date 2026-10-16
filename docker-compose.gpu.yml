@@ -1,0 +1,14 @@
+# NVIDIA GPU access for the backend (needs the NVIDIA driver + container toolkit on the host).
+services:
+  backend:
+    # /dev/nvidia-uvm can be created after the container starts; allow it by major number.
+    # The number is host specific: `ls -l /dev/nvidia-uvm` (install.sh detects it).
+    device_cgroup_rules:
+      - "c ${NVIDIA_UVM_MAJOR:-509}:* rmw"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: ${YUI_GPU_COUNT:-1}
+              capabilities: [gpu]

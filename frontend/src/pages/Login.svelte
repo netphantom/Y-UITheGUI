@@ -27,8 +27,8 @@
 
 <main>
   <form class="card" onsubmit={submit}>
-    <h1><span>Y</span>-UI</h1>
-    <p class="muted">Make a song with YuE2, on your own hardware.</p>
+    <img class="logo" src="/logo.png" alt="Y-UI" />
+    <p class="muted tagline">Make a song with YuE2, on your own hardware.</p>
 
     <div class="field">
       <label for="username">Username</label>
@@ -62,11 +62,14 @@
     min-height: 100vh;
     display: grid;
     place-items: center;
-    background: radial-gradient(circle at 30% 20%, rgb(240 83 63 / 0.25), transparent 50%), var(--bg);
+    background:
+      radial-gradient(circle at 25% 20%, rgb(0 212 255 / 0.18), transparent 45%),
+      radial-gradient(circle at 75% 80%, rgb(232 60 240 / 0.18), transparent 45%),
+      var(--bg);
   }
   form { width: min(380px, 92vw); padding: 2rem; display: flex; flex-direction: column; }
-  h1 { font-size: 2.2rem; font-weight: 800; margin: 0; }
-  h1 span { background: var(--gradient); background-clip: text; color: transparent; }
+  .logo { width: 120px; height: 120px; align-self: center; filter: drop-shadow(0 10px 30px rgb(168 85 247 / 0.35)); }
+  .tagline { text-align: center; margin-bottom: 1.5rem; }
   .primary { padding: 0.7rem; }
   .switch { margin-top: 0.75rem; color: var(--text-muted); }
 </style>

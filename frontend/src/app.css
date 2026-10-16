@@ -1,14 +1,16 @@
 /* Design tokens: dark, high-contrast, Suno-like look. */
 :root {
-  --bg: #0c0c0e;
-  --bg-elevated: #151518;
-  --bg-hover: #1e1e23;
-  --border: #26262c;
-  --text: #f4f4f5;
-  --text-muted: #9a9aa3;
-  --accent: #f0533f;
-  --accent-2: #ff8a3d;
-  --gradient: linear-gradient(90deg, var(--accent), var(--accent-2));
+  /* Palette taken from the Y-UI logo: cyan → violet → magenta on midnight blue. */
+  --bg: #07081a;
+  --bg-elevated: #0f1129;
+  --bg-hover: #181b3a;
+  --border: #23274a;
+  --text: #f4f4fb;
+  --text-muted: #9a9cb8;
+  --cyan: #00d4ff;
+  --accent: #a855f7;
+  --accent-2: #e83cf0;
+  --gradient: linear-gradient(90deg, var(--cyan), var(--accent) 55%, var(--accent-2));
   --danger: #ef4444;
   --success: #22c55e;
   --radius: 10px;

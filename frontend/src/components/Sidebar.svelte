@@ -15,7 +15,7 @@
 </script>
 
 <nav>
-  <a class="logo" href="#/"><span>Y</span>-UI</a>
+  <a class="logo" href="#/"><img src="/logo.png" alt="" /><span>Y-UI</span></a>
 
   {#each LINKS as link (link.path)}
     <a href="#{link.path}" class="link" class:active={isActive(link.path)}>
@@ -43,11 +43,15 @@
     gap: 0.25rem;
   }
   .logo {
-    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.4rem;
     font-weight: 800;
-    padding: 0 0.75rem 1.25rem;
+    padding: 0 0.5rem 1.25rem;
     letter-spacing: -0.03em;
   }
+  .logo img { width: 36px; height: 36px; }
   .logo span {
     background: var(--gradient);
     background-clip: text;
@@ -84,7 +88,8 @@
 
   @media (max-width: 760px) {
     nav { width: auto; flex-direction: row; border-right: none; border-bottom: 1px solid var(--border); padding: 0.5rem; overflow-x: auto; }
-    .logo { padding: 0.5rem; }
+    .logo { padding: 0.25rem 0.5rem; }
+    .logo span { display: none; }
     .user { margin: 0 0 0 auto; padding: 0; }
     .name { display: none; }
   }

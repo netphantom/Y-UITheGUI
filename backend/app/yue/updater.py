@@ -1,5 +1,8 @@
 """Startup check: install or upgrade the YuE2 inference package from its GitHub releases.
 
+In Docker the package lands in a virtualenv on the data volume (see docker-entrypoint.sh),
+so it is downloaded once and then only upgraded.
+
 Runs before the engine is imported, so the new code is what gets loaded. Model weights
 need no handling here: ``from_pretrained`` already syncs them with the Hugging Face Hub.
 A failed check never blocks startup; the already installed version keeps working.
@@ -51,7 +54,10 @@ class Updater:
         self.info = UpdateInfo(state="idle", installed_version=installed_version(settings.yue_package))
 
     async def run(self) -> UpdateInfo:
-        if not self.settings.auto_update:
+        if self.settings.engine != "yue2":
+            return self._set("skipped", message=f"Not needed by the {self.settings.engine} engine")
+        # With auto update off, YuE2 is still installed once (first start), never upgraded.
+        if not self.settings.auto_update and self.info.installed_version is not None:
             return self._set("disabled", message="Auto update disabled (YUI_AUTO_UPDATE=false)")
         try:
             self._set("checking")

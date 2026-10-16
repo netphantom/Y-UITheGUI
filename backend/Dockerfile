@@ -8,14 +8,15 @@ RUN apt-get update \
 WORKDIR /app
 COPY pyproject.toml ./
 COPY app ./app
-# Bake YuE2 into the image so a first start does not download it; the startup updater
-# then only upgrades when a newer release exists. Set INSTALL_YUE=false for mock-only images.
-ARG INSTALL_YUE=true
-RUN if [ "$INSTALL_YUE" = "true" ]; then pip install --no-cache-dir ".[yue]"; else pip install --no-cache-dir .; fi
+RUN pip install --no-cache-dir .
+COPY docker-entrypoint.sh /usr/local/bin/
 
 ENV YUI_DATA_DIR=/data \
     HF_HOME=/data/huggingface \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PYTHONUNBUFFERED=1
 VOLUME /data
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/system/status')"
+ENTRYPOINT ["docker-entrypoint.sh"]
