@@ -17,13 +17,17 @@ fail() { printf '\033[1;31m✗\033[0m %s\n' "$*" >&2; exit 1; }
 
 # Set KEY=VALUE in .env, replacing an existing (possibly commented-out) line.
 set_env() {
-    if grep -qE "^#?\s*$1=" .env; then
-        sed -i.bak -E "s|^#?\s*$1=.*|$1=$2|" .env && rm -f .env.bak
+    if grep -qE "^#?[[:space:]]*$1=" .env; then
+        sed -i.bak -E "s|^#?[[:space:]]*$1=.*|$1=$2|" .env && rm -f .env.bak
     else
         echo "$1=$2" >> .env
     fi
 }
 
+case "$(uname -s)" in
+    MINGW* | MSYS* | CYGWIN*)
+        fail "On Windows run this inside a WSL2 terminal (e.g. Ubuntu), not Git Bash: https://learn.microsoft.com/windows/wsl/install" ;;
+esac
 command -v docker >/dev/null 2>&1 || fail "Docker is required: https://docs.docker.com/engine/install/"
 docker compose version >/dev/null 2>&1 || fail "Docker Compose v2 is required (the 'docker compose' plugin)."
 
@@ -40,6 +44,7 @@ else
     cp .env.example .env
     if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi >/dev/null 2>&1; then
         say "NVIDIA GPU found: using the YuE2 engine"
+        # Native Linux only: WSL2 exposes the GPU through /dev/dxg instead.
         if [ -e /dev/nvidia-uvm ]; then
             set_env NVIDIA_UVM_MAJOR "$(( 0x$(stat -c '%t' /dev/nvidia-uvm) ))"
         fi

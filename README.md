@@ -55,6 +55,19 @@ Write lyrics, pick a style, get a full song with vocals — on your own GPU.
 support and ~24 GB VRAM, plus the
 [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
 
+### Supported platforms
+
+| Platform | Real songs (YuE2) | UI demo (mock) | How |
+|---|:---:|:---:|---|
+| **Linux** + NVIDIA GPU | ✅ | ✅ | Docker Engine + [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) |
+| **Windows 10/11** + NVIDIA GPU | ✅ | ✅ | [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) with the WSL2 backend; run the installer **inside a WSL2 terminal** (e.g. Ubuntu), not PowerShell or Git Bash |
+| **macOS** (Intel / Apple Silicon) | ❌ | ✅ | Docker Desktop. Containers cannot use the Apple GPU and YuE2 needs CUDA, so only the mock engine runs |
+
+> [!TIP]
+> On Windows keep the install folder in the WSL filesystem (the default `~/y-ui` when run
+> from WSL). On a `C:\` path bind mounts are slow, and SQLite file locking over them can
+> fail.
+
 ### One-click install
 
 ```bash
