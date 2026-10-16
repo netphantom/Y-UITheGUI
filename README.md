@@ -57,34 +57,42 @@ support and ~24 GB VRAM, plus the
 
 ### Supported platforms
 
-| Platform | Real songs (YuE2) | UI demo (mock) | How |
+| Platform | Real songs (YuE2) | UI demo (mock) | Requirements |
 |---|:---:|:---:|---|
 | **Linux** + NVIDIA GPU | ✅ | ✅ | Docker Engine + [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) |
-| **Windows 10/11** + NVIDIA GPU | ✅ | ✅ | [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) with the WSL2 backend; run the installer **inside a WSL2 terminal** (e.g. Ubuntu), not PowerShell or Git Bash |
+| **Windows 10/11** + NVIDIA GPU | ✅ | ✅ | [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) with the **WSL 2 backend** and an up-to-date NVIDIA driver |
 | **macOS** (Intel / Apple Silicon) | ❌ | ✅ | Docker Desktop. Containers cannot use the Apple GPU and YuE2 needs CUDA, so only the mock engine runs |
 
-> [!TIP]
-> On Windows keep the install folder in the WSL filesystem (the default `~/y-ui` when run
-> from WSL). On a `C:\` path bind mounts are slow, and SQLite file locking over them can
-> fail.
-
 ### One-click install
+
+**Linux / macOS / WSL**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/netphantom/Y-UITheGUI/main/install.sh | sh
 ```
 
-The installer sets up `~/y-ui` (change it with `YUI_DIR=...`), creates `.env` from
-[`.env.example`](.env.example) with your GPU auto-detected (mock engine if none), pulls the
-images and starts everything. Open **http://localhost:8080** and register: the first account
-is the admin.
+**Windows** (PowerShell, with Docker Desktop running)
 
-Run the same command again to update. Your `.env` and `data/` are never touched.
+```powershell
+irm https://raw.githubusercontent.com/netphantom/Y-UITheGUI/main/install.ps1 | iex
+```
+
+The installer sets up `~/y-ui` (change it with the `YUI_DIR` environment variable), creates
+`.env` from [`.env.example`](.env.example) with your NVIDIA GPU auto-detected (mock engine if
+none), pulls the images and starts everything. Open **http://localhost:8080** (Windows opens
+it for you) and register: the first account is the admin.
+
+Run the same command again to update. Your `.env` and your data are never touched.
 
 > [!NOTE]
-> The first start with YuE2 downloads the engine and the model weights (~15 GB) into `data/`.
+> The first start with YuE2 downloads the engine and the model weights (~15 GB).
 > The UI works meanwhile, and songs wait in the queue until **Settings → Engine** shows *ready*.
 > Follow progress with `docker compose logs -f backend`.
+
+> [!TIP]
+> On Windows the data lives in the Docker volume `y-ui_yui-data` instead of a folder:
+> SQLite on a bind-mounted `C:\` folder is slow and its file locks are unreliable.
+> Back it up with `docker run --rm -v y-ui_yui-data:/data -v ${PWD}:/backup alpine tar czf /backup/yui-data.tgz -C /data .`
 
 ### Manual install
 

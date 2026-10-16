@@ -11,7 +11,8 @@ services:
       - path: .env
         required: false
     volumes:
-      # SQLite DB, generated songs, YuE2 virtualenv and the Hugging Face model cache.
+      # SQLite DB, generated songs, YuE2 virtualenv and the Hugging Face model cache:
+      # a host folder (default) or the "yui-data" volume below.
       - ${YUI_DATA_PATH:-./data}:/data
     restart: unless-stopped
 
@@ -23,3 +24,7 @@ services:
     ports:
       - "${YUI_BIND:-0.0.0.0}:${YUI_PORT:-8080}:80"
     restart: unless-stopped
+
+volumes:
+  # Used when YUI_DATA_PATH=yui-data (the Windows installer default).
+  yui-data:

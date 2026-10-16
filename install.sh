@@ -26,7 +26,7 @@ set_env() {
 
 case "$(uname -s)" in
     MINGW* | MSYS* | CYGWIN*)
-        fail "On Windows run this inside a WSL2 terminal (e.g. Ubuntu), not Git Bash: https://learn.microsoft.com/windows/wsl/install" ;;
+        fail "On Windows use PowerShell: irm https://raw.githubusercontent.com/netphantom/Y-UITheGUI/main/install.ps1 | iex" ;;
 esac
 command -v docker >/dev/null 2>&1 || fail "Docker is required: https://docs.docker.com/engine/install/"
 docker compose version >/dev/null 2>&1 || fail "Docker Compose v2 is required (the 'docker compose' plugin)."
