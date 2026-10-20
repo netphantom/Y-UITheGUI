@@ -100,6 +100,42 @@ On Windows (PowerShell) use `Copy-Item .env.example .env` and set `YUI_DATA_PATH
 it (see the [Windows guide](#-windows-guide)). Docker Compose reads `.env` on its own. To build the images from source instead of pulling
 them, add `docker-compose.dev.yml` to `COMPOSE_FILE`.
 
+### Uninstall
+
+Run these from the install folder (`~/y-ui`, or your clone for a manual install). Your data
+lives in a different place on each OS, so check the table before deleting anything.
+
+| | Data (database, songs, YuE2, model weights) | Kept when you delete the folder? |
+|---|---|:---:|
+| Linux / macOS | the `data/` folder inside the install folder | ❌ |
+| Windows | the Docker volume `y-ui_yui-data` | ✅ |
+
+**Linux / macOS**
+
+```bash
+cd ~/y-ui
+docker compose down --rmi all   # stop Y-UI, remove its containers, network and images
+mv data ~/yui-data-backup       # optional: keep your songs and the downloaded model
+cd ~ && sudo rm -rf ~/y-ui      # sudo: files in data/ are created by the container as root
+```
+
+**Windows (PowerShell)**
+
+```powershell
+cd ~\y-ui
+docker compose down --rmi all       # stop Y-UI, remove its containers, network and images
+cd ~
+Remove-Item -Recurse -Force ~\y-ui  # compose files and .env
+docker volume rm y-ui_yui-data      # optional: delete all songs and the model (~15 GB)
+```
+
+> [!WARNING]
+> Do not use `docker compose down -v` unless you mean it: it deletes the `yui-data` volume,
+> so on Windows all your songs and the model, without asking for confirmation.
+
+Docker itself (and Docker Desktop / WSL 2 on Windows) stays installed; remove it from your
+system's app settings if you no longer need it.
+
 ## 🪟 Windows guide
 
 Y-UI runs on Windows through **Docker Desktop**, which runs the Linux containers in a small
@@ -173,8 +209,8 @@ docker run --rm -v y-ui_yui-data:/data -v ${PWD}:/backup alpine tar czf /backup/
 docker run --rm -v y-ui_yui-data:/data -v ${PWD}:/backup alpine tar xzf /backup/yui-data.tgz -C /data
 ```
 
-**Uninstall:** `docker compose down`, then delete the `y-ui` folder. Run `docker volume rm
-y-ui_yui-data` only if you also want to delete all songs and the downloaded model.
+**Uninstall:** see [Uninstall](#uninstall). Deleting the `y-ui` folder keeps your data; only
+`docker volume rm y-ui_yui-data` deletes it.
 
 ### 5. Troubleshooting
 
